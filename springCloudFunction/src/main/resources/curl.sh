@@ -1,0 +1,1 @@
+curl -X POST http://localhost:8080/sms -H "Content-Type: application/json" -d '{"paymentUuid": 1234, "paymentStatus": "PROCESSING", "amount": 9999}'

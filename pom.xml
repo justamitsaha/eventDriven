@@ -7,6 +7,10 @@
     <groupId>org.example</groupId>
     <artifactId>eventDriven</artifactId>
     <version>1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <modules>
+        <module>springCloudFunction</module>
+    </modules>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
