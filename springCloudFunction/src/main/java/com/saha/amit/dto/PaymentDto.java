@@ -2,6 +2,8 @@ package com.saha.amit.dto;
 
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
@@ -11,4 +13,6 @@ public class PaymentDto {
     private int paymentUuid;
     private String paymentStatus;
     private int amount;
+    private LocalDateTime createdDate;
+    private LocalDateTime updatedDate;
 }
