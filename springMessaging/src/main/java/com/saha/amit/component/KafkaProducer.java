@@ -29,7 +29,7 @@ public class KafkaProducer {
     private final ObjectMapper objectMapper;
 
 
-    private final Log log = LogFactory.getLog(KafkaTemplate.class);
+    private final Log log = LogFactory.getLog(KafkaProducer.class);
 
     @Autowired
     public KafkaProducer(KafkaTemplate<String, String> kafkaTemplate, ObjectMapper objectMapper) {
@@ -37,11 +37,12 @@ public class KafkaProducer {
         this.objectMapper = objectMapper;
     }
 
-//    public void sendRabbitMqCommunication(ProductDto productDto) {
-//        log.info("Sending Communication request for the details: {} " + productDto);
-//        var result = streamBridge.send("sendCommunication-out-0", productDto);
-//        log.info("Is the Communication request successfully triggered ? : {} " + result);
-//    }
+    /*For sending to rabbit MQ
+    public void sendRabbitMqCommunication(ProductDto productDto) {
+        log.info("Sending Communication request for the details: {} " + productDto);
+        var result = streamBridge.send("sendCommunication-out-0", productDto);
+        log.info("Is the Communication request successfully triggered ? : {} " + result);
+    }*/
 
     public CompletableFuture<SendResult<String, String>> sendKafkaEvent(PaymentDto paymentDto) throws JsonProcessingException {
 
