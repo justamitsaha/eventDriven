@@ -22,13 +22,13 @@ public class DeadLetterConsumer implements AcknowledgingMessageListener<String, 
     }
 
     @Override
-    @KafkaListener(topics = "${topics.dlt}", groupId = "product-RETRY-group")
+    //@KafkaListener(topics = "${topics.dlt}", groupId = "payment-RETRY-group")
     public void onMessage(ConsumerRecord<String, String> consumerRecord, Acknowledgment acknowledgment) {
 
-        PaymentDto productDTO = null;
+        PaymentDto paymentDto = null;
         try {
-            productDTO = objectMapper.readValue(consumerRecord.value(), PaymentDto.class);
-            log.info("DEAD RECEIVED --> " + productDTO + " RECORD " + consumerRecord);
+            paymentDto = objectMapper.readValue(consumerRecord.value(), PaymentDto.class);
+            log.info("DEAD RECEIVED --> " + paymentDto + " RECORD " + consumerRecord);
             acknowledgment.acknowledge();
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);

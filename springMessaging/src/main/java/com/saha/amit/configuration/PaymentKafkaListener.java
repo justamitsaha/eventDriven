@@ -22,9 +22,9 @@ import java.util.List;
 
 @Configuration
 @EnableKafka
-public class ProductKafkaListener {
+public class PaymentKafkaListener {
 
-    Log log = LogFactory.getLog(ProductKafkaListener.class);
+    Log log = LogFactory.getLog(PaymentKafkaListener.class);
     @Autowired
     KafkaTemplate kafkaTemplate;
     @Value("${topics.retry}")

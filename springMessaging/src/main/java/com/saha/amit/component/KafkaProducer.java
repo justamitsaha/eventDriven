@@ -9,6 +9,7 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.header.Header;
 import org.apache.kafka.common.header.internals.RecordHeader;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Component;
@@ -27,6 +28,9 @@ public class KafkaProducer {
     private final KafkaTemplate<String, String> kafkaTemplate;
 
     private final ObjectMapper objectMapper;
+
+    @Value("${topic.main}")
+    private String topic;
 
 
     private final Log log = LogFactory.getLog(KafkaProducer.class);
@@ -51,7 +55,7 @@ public class KafkaProducer {
         paymentDto.setCreatedDate(LocalDateTime.now());
         String value = objectMapper.writeValueAsString(paymentDto);
 
-        var completableFuture = kafkaTemplate.send("product", String.valueOf(paymentDto.getPaymentType()), value);
+        var completableFuture = kafkaTemplate.send(topic, String.valueOf(paymentDto.getPaymentType()), value);
         return completableFuture.whenComplete((stringStringSendResult, throwable) ->
         {
             if (null != throwable)
@@ -67,7 +71,7 @@ public class KafkaProducer {
         paymentDto.setCreatedDate(LocalDateTime.now());
         String value = objectMapper.writeValueAsString(paymentDto);
         //Blocking call
-        return kafkaTemplate.send("product", String.valueOf(paymentDto.getPaymentType()), value).get(3, TimeUnit.SECONDS);
+        return kafkaTemplate.send(topic, String.valueOf(paymentDto.getPaymentType()), value).get(3, TimeUnit.SECONDS);
     }
 
     public CompletableFuture<SendResult<String, String>> sendKafkaEvent3(PaymentDto paymentDto) throws JsonProcessingException {
@@ -77,9 +81,9 @@ public class KafkaProducer {
         paymentDto.setCreatedDate(LocalDateTime.now());
         String value = objectMapper.writeValueAsString(paymentDto);
 
-        ProducerRecord<String, String> producerRecord = buildProducerRecord(paymentDto.getPaymentUuid(), value, "product");
+        ProducerRecord<String, String> producerRecord = buildProducerRecord(paymentDto.getPaymentUuid(), value, topic);
 
-        var completableFuture = kafkaTemplate.send("product", String.valueOf(paymentDto.getPaymentType()), value);
+        var completableFuture = kafkaTemplate.send(topic, String.valueOf(paymentDto.getPaymentType()), value);
         return completableFuture.whenComplete((stringStringSendResult, throwable) ->
         {
             if (null != throwable)

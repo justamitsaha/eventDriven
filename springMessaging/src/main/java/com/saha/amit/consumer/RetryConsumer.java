@@ -22,13 +22,13 @@ public class RetryConsumer implements AcknowledgingMessageListener<String, Strin
     }
 
     @Override
-    @KafkaListener(topics = {"${topics.retry}"}, groupId = "${topics.retry.group}")
+    //@KafkaListener(topics = {"${topics.retry}"}, groupId = "${topics.retry.group}")
     public void onMessage(ConsumerRecord<String, String> consumerRecord, Acknowledgment acknowledgment) {
         log.info("INSIDE RetryConsumer ");
-        PaymentDto productDTO = null;
+        PaymentDto paymentDto = null;
         try {
-            productDTO = objectMapper.readValue(consumerRecord.value(), PaymentDto.class);
-            log.info("RETRY RECEIVED --> " + productDTO + " RECORD ");
+            paymentDto = objectMapper.readValue(consumerRecord.value(), PaymentDto.class);
+            log.info("RETRY RECEIVED --> " + paymentDto + " RECORD ");
             consumerRecord.headers().forEach(header ->
                     log.info("KEY " + header.key() + " VALUE "+new String(header.value()))
             );

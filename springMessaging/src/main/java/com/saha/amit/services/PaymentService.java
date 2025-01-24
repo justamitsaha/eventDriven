@@ -24,7 +24,7 @@ public class PaymentService {
         PaymentDto paymentDto = null;
         try {
             paymentDto = objectMapper.readValue(consumerRecord.value(), PaymentDto.class);
-            log.info("RECEIVED PRODUCT IN MAIN CONSUMER --> " + paymentDto + " RECORD " + consumerRecord);
+            log.info("RECEIVED PAYMENT IN MAIN CONSUMER --> " + paymentDto + " RECORD " + consumerRecord);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
@@ -34,7 +34,7 @@ public class PaymentService {
             if (paymentDto.getAmount() > 99)
                 throw new RecoverableDataAccessException("");
             else {
-                log.info("PRODUCT PROCESSED SUCCESSFULLY --> " + paymentDto + " RECORD " + consumerRecord);
+                log.info("PAYMENT PROCESSED SUCCESSFULLY --> " + paymentDto + " RECORD " + consumerRecord);
                 log.info("SENDING ACKNOWLEDGEMENT  " + paymentDto.getPaymentUuid());
                 return true;
             }

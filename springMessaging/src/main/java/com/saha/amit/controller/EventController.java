@@ -5,6 +5,7 @@ import com.saha.amit.component.KafkaProducer;
 import dto.PaymentDto;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -24,6 +25,7 @@ public class EventController {
 
     private final Log log = LogFactory.getLog(EventController.class);
 
+    @Autowired
     public EventController(KafkaProducer kafkaProducer) {
         this.kafkaProducer = kafkaProducer;
     }
