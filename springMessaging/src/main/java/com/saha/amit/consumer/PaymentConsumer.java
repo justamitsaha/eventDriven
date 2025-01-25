@@ -23,7 +23,7 @@ public class PaymentConsumer implements AcknowledgingMessageListener<String, Str
 
 
     @Override
-    //@KafkaListener(topics = {"${topic.main}"}, groupId = "${spring.kafka.consumer.group-id}")
+    @KafkaListener(topics = {"${topic.main}"}, groupId = "${spring.kafka.consumer.group-id}")
     public void onMessage(ConsumerRecord<String, String> consumerRecord, Acknowledgment acknowledgment) {
         log.info("CONSUMED RECORD IN PAYMENT KafkaConsumer");
         if (paymentService.processRecord(consumerRecord))

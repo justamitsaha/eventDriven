@@ -16,6 +16,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.DeadLetterPublishingRecoverer;
 import org.springframework.kafka.listener.DefaultErrorHandler;
+import org.springframework.kafka.support.ExponentialBackOffWithMaxRetries;
 import org.springframework.util.backoff.FixedBackOff;
 
 import java.util.List;
@@ -32,41 +33,35 @@ public class PaymentKafkaListener {
     @Value("${topics.dlt}")
     private String deadLetterTopic;
 
-    public DeadLetterPublishingRecoverer publishingErrorScenarios() {
+    @Bean
+    ConcurrentKafkaListenerContainerFactory<?, ?> kafkaListenerContainerFactory(
+            ConcurrentKafkaListenerContainerFactoryConfigurer configure,
+            ConsumerFactory<Object, Object> kafkaConsumerFactory) {
 
-        DeadLetterPublishingRecoverer recoverer = new DeadLetterPublishingRecoverer(kafkaTemplate
-                , (r, e) -> {
-            log.error("Exception in publishingRecoverer : {} " + e.getMessage());
-            if (e.getCause() instanceof RecoverableDataAccessException) {
-                log.info("SENDING TO RETRY TOPIC  " + e.getClass());
-                return new TopicPartition(retryTopic, r.partition());
-            } else {
-                log.info("SENDING TO DEAD TOPIC  " + e.getClass());
-                return new TopicPartition(deadLetterTopic, r.partition());
-            }
-        }
-        );
-
-        return recoverer;
-
+        ConcurrentKafkaListenerContainerFactory<Object, Object> factory = new ConcurrentKafkaListenerContainerFactory<>();
+        configure.configure(factory, kafkaConsumerFactory);
+        factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL);    // Acknowledgement
+        factory.setCommonErrorHandler(errorHandler());
+        factory.setConcurrency(3);          //No of concurrent listeners
+        return factory;
     }
 
     public DefaultErrorHandler errorHandler() {
         //retries with Fixed backoff
-        var fixedBackOff = new FixedBackOff(1000L, 1);
+        var fixedBackOff = new FixedBackOff(1000L, 2);
         var errorHandler = new DefaultErrorHandler(publishingErrorScenarios(), fixedBackOff);
 
         //retries with Exponential backoff
-//        ExponentialBackOffWithMaxRetries expBackOff = new ExponentialBackOffWithMaxRetries(2);
-//        expBackOff.setInitialInterval(1_000L);
-//        expBackOff.setMultiplier(2.0);
-//        expBackOff.setMaxInterval(2_000L);
-//        errorHandler = new DefaultErrorHandler(expBackOff);
+        ExponentialBackOffWithMaxRetries expBackOff = new ExponentialBackOffWithMaxRetries(2);
+        expBackOff.setInitialInterval(1_000L);      //first retry duration
+        expBackOff.setMultiplier(2.0);              //subsequent retry attempt multiplied by
+        expBackOff.setMaxInterval(2_000L);          //Max wait duration
+        errorHandler = new DefaultErrorHandler(publishingErrorScenarios(), expBackOff);
 
-        //For additional logging
-//        errorHandler.setRetryListeners(((record, ex, deliveryAttempt) -> {
-//            log.error("Error in consuming product for "+ record +" error " +ex+ " deliveryAttempt "+deliveryAttempt );
-//        }));
+        //For additional logging If you'd like to see what's happening in each and every attempt
+        errorHandler.setRetryListeners(((record, ex, deliveryAttempt) -> {
+            log.error("Error in consuming product for " + record + " error " + ex + " deliveryAttempt " + deliveryAttempt);
+        }));
 
         // Ignore reties for specific exception
         var exceptionToIgnoreList = List.of(
@@ -78,17 +73,21 @@ public class PaymentKafkaListener {
         return errorHandler;
     }
 
-    @Bean
-    ConcurrentKafkaListenerContainerFactory<?, ?> kafkaListenerContainerFactory(
-            ConcurrentKafkaListenerContainerFactoryConfigurer configure,
-            ConsumerFactory<Object, Object> kafkaConsumerFactory) {
+    public DeadLetterPublishingRecoverer publishingErrorScenarios() {
 
-        ConcurrentKafkaListenerContainerFactory<Object, Object> factory = new ConcurrentKafkaListenerContainerFactory<>();
-        configure.configure(factory, kafkaConsumerFactory);
-        factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL);
-        factory.setCommonErrorHandler(errorHandler());
-        factory.setConcurrency(3);
-        return factory;
+        return new DeadLetterPublishingRecoverer(kafkaTemplate
+                , (r, e) -> {
+            log.error("Exception in publishing message : {} " + e.getMessage());
+            if (e.getCause() instanceof RecoverableDataAccessException) {
+                log.info("SENDING TO RETRY TOPIC  " + e.getClass());
+                return new TopicPartition(retryTopic, r.partition());
+            } else {
+                log.info("SENDING TO DEAD TOPIC  " + e.getClass());
+                return new TopicPartition(deadLetterTopic, r.partition());
+            }
+        });
+
     }
+
 
 }
