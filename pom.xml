@@ -11,6 +11,7 @@
     <modules>
         <module>springCloudFunction</module>
         <module>springMessaging</module>
+        <module>reactive-RabbitQM-SpringCloud</module>
     </modules>
 
     <properties>

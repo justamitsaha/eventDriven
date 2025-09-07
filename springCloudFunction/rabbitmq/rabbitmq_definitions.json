@@ -1,0 +1,65 @@
+{
+  "users": [
+    {
+      "name": "admin",
+      "password": "admin",
+      "tags": "administrator"
+    }
+  ],
+  "vhosts": [
+    { "name": "/" }
+  ],
+  "permissions": [
+    {
+      "user": "admin",
+      "vhost": "/",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    }
+  ],
+  "exchanges": [
+    {
+      "name": "order.events",
+      "vhost": "/",
+      "type": "topic",
+      "durable": true
+    }
+  ],
+  "queues": [
+    { "name": "order-service-queue", "vhost": "/", "durable": true },
+    { "name": "payment-service-queue", "vhost": "/", "durable": true },
+    { "name": "delivery-service-queue", "vhost": "/", "durable": true },
+    { "name": "closure-service-queue", "vhost": "/", "durable": true }
+  ],
+  "bindings": [
+    {
+      "source": "order.events",
+      "vhost": "/",
+      "destination": "order-service-queue",
+      "destination_type": "queue",
+      "routing_key": "order.*"
+    },
+    {
+      "source": "order.events",
+      "vhost": "/",
+      "destination": "payment-service-queue",
+      "destination_type": "queue",
+      "routing_key": "order.created"
+    },
+    {
+      "source": "order.events",
+      "vhost": "/",
+      "destination": "delivery-service-queue",
+      "destination_type": "queue",
+      "routing_key": "payment.completed"
+    },
+    {
+      "source": "order.events",
+      "vhost": "/",
+      "destination": "closure-service-queue",
+      "destination_type": "queue",
+      "routing_key": "delivery.completed"
+    }
+  ]
+}
