@@ -24,13 +24,48 @@
       "vhost": "/",
       "type": "topic",
       "durable": true
+    },
+    {
+      "name": "order.dlx",
+      "vhost": "/",
+      "type": "direct",
+      "durable": true
     }
   ],
   "queues": [
-    { "name": "order-service-queue", "vhost": "/", "durable": true },
-    { "name": "payment-service-queue", "vhost": "/", "durable": true },
-    { "name": "delivery-service-queue", "vhost": "/", "durable": true },
-    { "name": "closure-service-queue", "vhost": "/", "durable": true }
+    {
+      "name": "order-service-queue",
+      "vhost": "/",
+      "durable": true,
+      "arguments": {
+        "x-dead-letter-exchange": "order.dlx",
+        "x-dead-letter-routing-key": "order.error"
+        /* OPTIONAL examples:
+           "x-message-ttl": 60000,         // message expires after 60s -> DLQ
+           "x-max-length": 10000           // drop/evict oldest when queue > 10000 messages
+        */
+      }
+    },
+    {
+      "name": "payment-service-queue",
+      "vhost": "/",
+      "durable": true
+    },
+    {
+      "name": "delivery-service-queue",
+      "vhost": "/",
+      "durable": true
+    },
+    {
+      "name": "closure-service-queue",
+      "vhost": "/",
+      "durable": true
+    },
+    {
+      "name": "order-error-queue",
+      "vhost": "/",
+      "durable": true
+    }
   ],
   "bindings": [
     {
@@ -60,6 +95,13 @@
       "destination": "closure-service-queue",
       "destination_type": "queue",
       "routing_key": "delivery.completed"
+    },
+    {
+      "source": "order.dlx",
+      "vhost": "/",
+      "destination": "order-error-queue",
+      "destination_type": "queue",
+      "routing_key": "order.error"
     }
   ]
 }
