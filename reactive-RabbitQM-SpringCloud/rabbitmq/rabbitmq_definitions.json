@@ -40,10 +40,6 @@
       "arguments": {
         "x-dead-letter-exchange": "order.dlx",
         "x-dead-letter-routing-key": "order.error"
-        /* OPTIONAL examples:
-           "x-message-ttl": 60000,         // message expires after 60s -> DLQ
-           "x-max-length": 10000           // drop/evict oldest when queue > 10000 messages
-        */
       }
     },
     {
