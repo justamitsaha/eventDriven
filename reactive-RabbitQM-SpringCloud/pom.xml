@@ -53,18 +53,19 @@
             <artifactId>spring-boot-starter-webflux</artifactId>
         </dependency>
 
-        <!-- Spring Cloud Function reactive (WebFlux) starter -->
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-function-webflux</artifactId>
-        </dependency>
-
         <!-- Reactor RabbitMQ (reactive client) -->
         <dependency>
             <groupId>io.projectreactor.rabbitmq</groupId>
             <artifactId>reactor-rabbitmq</artifactId>
             <version>${reactor.rabbitmq.version}</version>
         </dependency>
+
+        <!--Non-reactive RabbitTemplate is provided by Spring AMQP-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-amqp</artifactId>
+        </dependency>
+
 
         <!-- Jackson (usually on classpath, but explicit helps) -->
         <dependency>

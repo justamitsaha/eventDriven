@@ -12,6 +12,8 @@ public class ReactiveRabbitMqSpringCloudApplication {
 
     public static void main(String[] args) {
         String rabbitMq = "http://192.168.0.143:15672/";
+        String swagger_UI = "http://localhost:8080/swagger-ui/index.html";
+        logger.info("Swagger UI, {} ",swagger_UI);
         SpringApplication.run(ReactiveRabbitMqSpringCloudApplication.class, args);
         logger.info("Rabbit MQ, {} ",rabbitMq);
     }

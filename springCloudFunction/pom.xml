@@ -17,45 +17,69 @@
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <spring-cloud.version>2024.0.0</spring-cloud.version>
+<!--        <springdoc.version>2.6.0</springdoc.version>-->
     </properties>
 
     <dependencies>
 
-<!--        <dependency>-->
-<!--            <groupId>org.springframework.boot</groupId>-->
-<!--            <artifactId>spring-boot-starter</artifactId>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>org.springframework.cloud</groupId>-->
-<!--            <artifactId>spring-cloud-function-context</artifactId>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>org.springframework.cloud</groupId>-->
-<!--            <artifactId>spring-cloud-starter-function-web</artifactId>-->
-<!--        </dependency>-->
+        <!-- Reactive Web support using Project Reactor (Netty instead of Tomcat).
+             Needed if you want to expose REST APIs in a reactive/non-blocking way. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webflux</artifactId>
+        </dependency>
 
+
+        <!-- Auto-exposes Function, Supplier, Consumer beans as HTTP endpoints.
+             Example: Function<In,Out> bean named "foo" → POST /foo (body=In, response=Out).
+             Lets you build function-first microservices without controllers. -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-function-web</artifactId>
+        </dependency>
+
+        <!-- Core Spring Cloud Stream abstraction.
+             Lets you bind Function/Consumer/Supplier beans to messaging middleware (Kafka, RabbitMQ, etc.).
+             Provides @EnableBinding, binding properties, and stream processing APIs. -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-stream</artifactId>
         </dependency>
 
+        <!-- Kafka binder for Spring Cloud Stream.
+             Implements the actual Kafka communication layer so that your
+             functions can consume/produce Kafka messages declaratively.
+             Without this, Spring Cloud Stream won’t know how to talk to Kafka. -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-stream-binder-kafka</artifactId>
         </dependency>
 
-
+        <!-- Testing support for Spring Boot (JUnit, AssertJ, Hamcrest, MockMvc, ReactorTest).
+             Gives you @SpringBootTest, @WebFluxTest, and test utilities. -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
 
+        <!-- Lombok: auto-generates getters, setters, constructors, equals/hashCode, toString at compile time.
+             Used to reduce boilerplate in DTOs and entities.
+             Optional=true means it won’t be required at runtime. -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <optional>true</optional>
         </dependency>
+
+
+        <!-- OpenAPI for WebFlux -->
+<!--        <dependency>-->
+<!--            <groupId>org.springdoc</groupId>-->
+<!--            <artifactId>springdoc-openapi-starter-webflux-ui</artifactId>-->
+<!--            <version>${springdoc.version}</version>-->
+<!--        </dependency>-->
+
     </dependencies>
 
     <dependencyManagement>

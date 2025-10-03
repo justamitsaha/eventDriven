@@ -1,6 +1,6 @@
 package com.saha.amit.controller;
 
-import com.saha.amit.component.EventPublisher;
+import com.saha.amit.component.reactive.OrderCreatedPublisherReactive;
 import com.saha.amit.dto.OrderDto;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.ResponseEntity;
@@ -14,16 +14,16 @@ import reactor.core.publisher.Mono;
 @RequestMapping("order")
 public class OrderController {
 
-    private final EventPublisher eventPublisher;
+    private final OrderCreatedPublisherReactive orderCreatedPublisherReactive;
 
-    public OrderController(EventPublisher eventPublisher) {
-        this.eventPublisher = eventPublisher;
+    public OrderController(OrderCreatedPublisherReactive orderCreatedPublisherReactive) {
+        this.orderCreatedPublisherReactive = orderCreatedPublisherReactive;
     }
 
     @Operation(summary = "Place a new order")
     @PostMapping
     public Mono<ResponseEntity<OrderDto>> updateProduct(@RequestBody OrderDto order){
-        return eventPublisher.publishEvent("order.created", order)
+        return orderCreatedPublisherReactive.publishEvent("order.created", order)
                 .then(Mono.just(ResponseEntity.ok(order)));
     }
 }
