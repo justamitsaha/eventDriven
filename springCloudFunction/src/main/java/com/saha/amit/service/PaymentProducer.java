@@ -3,7 +3,12 @@ package com.saha.amit.service;
 import com.saha.amit.dto.PaymentDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.stream.function.StreamBridge;
+import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
+
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -17,12 +22,28 @@ public class PaymentProducer {
 
     public void sendEmail(PaymentDto dto) {
         log.info("Producing to emailEvent: {}", dto);
-        streamBridge.send("emailProducer-out-0", dto);
+        if (dto.getPaymentUuid() == null || dto.getPaymentUuid().isEmpty()) {
+            String uuidString = UUID.randomUUID().toString();
+            dto.setPaymentUuid(uuidString);
+        }
+        Message<PaymentDto> message = MessageBuilder
+                .withPayload(dto)
+                .setHeader(KafkaHeaders.KEY, String.valueOf(dto.getPaymentUuid()).getBytes())
+                .build();
+        streamBridge.send("emailProducer-out-0", message);
     }
 
     public void sendSms(PaymentDto dto) {
         log.info("Producing to smsEvent: {}", dto);
-        streamBridge.send("smsProducer-out-0", dto);
+        if (dto.getPaymentUuid() == null || dto.getPaymentUuid().isEmpty()) {
+            String uuidString = UUID.randomUUID().toString();
+            dto.setPaymentUuid(uuidString);
+        }
+        Message<PaymentDto> message = MessageBuilder
+                .withPayload(dto)
+                .setHeader(KafkaHeaders.KEY, String.valueOf(dto.getPaymentUuid()).getBytes())
+                .build();
+        streamBridge.send("smsProducer-out-0", message);
     }
 }
 

@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @Setter
 @ToString
 public class PaymentDto {
-    private int paymentUuid;
+    private String paymentUuid;
     private String paymentStatus;
     private int amount;
     private LocalDateTime createdDate;

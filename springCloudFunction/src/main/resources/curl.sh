@@ -40,20 +40,30 @@ docker exec -it kafka1 kafka-console-consumer \
 
 
 #test
-curl -X POST http://localhost:8081/smsProducer \
+curl -X POST http://localhost:8081/emailProducer \
   -H "Content-Type: application/json" \
   -d '{
-        "paymentUuid": 1001,
+        "paymentUuid": 2323323323,
         "paymentStatus": "PENDING",
         "amount": 500,
         "createdDate": "2025-10-02T12:00:00",
         "updatedDate": "2025-10-02T12:05:00"
       }'
 
-curl -X POST http://localhost:8081/emailProducer \
+curl -X POST http://localhost:8081/smsProducer \
   -H "Content-Type: application/json" \
   -d '{
-        "paymentUuid": 200578,
+        "paymentStatus": "PENDING",
+        "amount": 500,
+        "createdDate": "2025-10-02T12:00:00",
+        "updatedDate": "2025-10-02T12:05:00"
+      }'
+
+#Copy UUID from the response of the first request and use it in the next request it will go to same partition
+curl -X POST http://localhost:8081/smsProducer \
+  -H "Content-Type: application/json" \
+  -d '{
+        "paymentUuid":"a2163367-8535-4c4f-8fed-20a35ce0695c",
         "paymentStatus": "SUCCESS",
         "amount": 750,
         "createdDate": "2025-10-02T12:10:00",
