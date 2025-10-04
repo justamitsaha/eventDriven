@@ -45,5 +45,11 @@ public class PaymentProducer {
                 .build();
         streamBridge.send("smsProducer-out-0", message);
     }
+
+    public void sendSmsDlt(Message<PaymentDto> message) {
+        log.info("Producing DLT messages to smsEvent: {}", message.getPayload());
+        streamBridge.send("smsProducer-out-0", message);
+    }
+
 }
 
