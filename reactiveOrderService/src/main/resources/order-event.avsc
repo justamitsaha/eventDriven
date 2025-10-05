@@ -1,0 +1,13 @@
+{
+  "type": "record",
+  "name": "OrderEvent",
+  "namespace": "com.example.order.events",
+  "fields": [
+    { "name": "eventId", "type": "string" },
+    { "name": "orderId", "type": "string" },
+    { "name": "customerId", "type": "string" },
+    { "name": "status", "type": "string" },
+    { "name": "amount", "type": "double" },
+    { "name": "timestamp", "type": "long" }
+  ]
+}

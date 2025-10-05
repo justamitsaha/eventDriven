@@ -2,6 +2,8 @@
 <project version="4">
   <component name="Encoding">
     <file url="file://$PROJECT_DIR$/reactive-RabbitQM-SpringCloud/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/reactiveOrderService/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/reactiveOrderService/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/springCloudFunction/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/springCloudFunction/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/springMessaging/src/main/java" charset="UTF-8" />

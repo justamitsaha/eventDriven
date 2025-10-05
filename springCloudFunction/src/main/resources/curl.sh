@@ -1,4 +1,4 @@
-curl -X POST http://localhost:8081/sms -H "Content-Type: application/json" -d '{"paymentUuid": 1234, "paymentStatus": "PROCESSING", "amount": 9999}'
+<------------ Basic Kafka operations ------------>
 
 #1. Create topics
 docker exec -it kafka1 kafka-topics \
