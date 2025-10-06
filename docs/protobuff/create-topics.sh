@@ -1,10 +1,5 @@
 #!/bin/bash
 
-#chmod +x create-topics.sh
-#docker compose up -d
-# ./create-topics.sh
-
-
 BROKER="192.168.0.143:9092"   # use any one broker for bootstrap
 REPLICATION=3
 PARTITIONS=3

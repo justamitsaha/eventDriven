@@ -12,6 +12,7 @@
         <module>springCloudFunction</module>
         <module>springMessaging</module>
         <module>reactiveOrderService</module>
+        <module>nonReactiveOrderService</module>
     </modules>
 
     <properties>
