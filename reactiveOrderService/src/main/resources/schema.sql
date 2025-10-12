@@ -1,4 +1,4 @@
-use `kafka_app`;
+use `amit`;
 CREATE TABLE orders (
     order_id CHAR(36) NOT NULL PRIMARY KEY,
     customer_id VARCHAR(36) NOT NULL,
