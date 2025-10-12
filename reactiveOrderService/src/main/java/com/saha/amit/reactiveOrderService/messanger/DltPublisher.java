@@ -2,58 +2,69 @@ package com.saha.amit.reactiveOrderService.messanger;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.saha.amit.reactiveOrderService.events.OrderEvent;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 import reactor.kafka.sender.KafkaSender;
 import reactor.kafka.sender.SenderRecord;
+import reactor.kafka.sender.SenderResult;
+
+import java.nio.charset.StandardCharsets;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class DltPublisher {
 
-    private final KafkaSender<String, byte[]> kafkaSender;
+    private final @Qualifier("byteKafkaSender") KafkaSender<String, byte[]> kafkaSender;
     private final ObjectMapper objectMapper;
 
-    private static final String DLT_TOPIC = "order.events.dlt";
+    @Value("${app.kafka.topic.order.dlt}")
+    private String dltTopic;
 
-    public DltPublisher(@Qualifier("jsonKafkaReceiver")KafkaSender<String, byte[]> kafkaSender, ObjectMapper objectMapper) {
-        this.kafkaSender = kafkaSender;
-        this.objectMapper = objectMapper;
+    public Mono<Void> sendToDlt(OrderEvent event,
+                                String failureType,
+                                String reason,
+                                String sourceTopic,
+                                Integer partition,
+                                Long offset) {
+        return Mono.fromCallable(() -> objectMapper.writeValueAsBytes(event))
+                .flatMap(payload -> kafkaSender
+                        .send(Mono.just(buildSenderRecord(event, payload, failureType, reason, sourceTopic, partition, offset)))
+                        .doOnNext(this::logResult))
+                .then();
     }
 
-    public Mono<Void> sendToDlt(OrderEvent event, String failureType, String reason, String sourceTopic, Integer partition, Long offset) {
-        try {
-            byte[] payload = objectMapper.writeValueAsBytes(event);
+    private SenderRecord<String, byte[], String> buildSenderRecord(OrderEvent event,
+                                                                   byte[] payload,
+                                                                   String failureType,
+                                                                   String reason,
+                                                                   String sourceTopic,
+                                                                   Integer partition,
+                                                                   Long offset) {
+        ProducerRecord<String, byte[]> record = new ProducerRecord<>(dltTopic, event.customerId(), payload);
+        record.headers()
+                .add("failure-type", encode(failureType))
+                .add("failure-reason", encode(reason))
+                .add("source-topic", encode(sourceTopic))
+                .add("source-partition", encode(partition != null ? partition.toString() : "-1"))
+                .add("source-offset", encode(offset != null ? offset.toString() : "-1"));
+        return SenderRecord.create(record, event.eventId());
+    }
 
-            ProducerRecord<String, byte[]> record = new ProducerRecord<>(DLT_TOPIC, event.customerId(), payload);
+    private byte[] encode(String value) {
+        return value == null ? new byte[0] : value.getBytes(StandardCharsets.UTF_8);
+    }
 
-            // add metadata as headers
-            record.headers()
-                    .add("failure-type", failureType.getBytes())
-                    .add("failure-reason", reason.getBytes())
-                    .add("source-topic", sourceTopic.getBytes())
-                    .add("source-partition", String.valueOf(partition != null ? partition : -1).getBytes())
-                    .add("source-offset", String.valueOf(offset != null ? offset : -1).getBytes());
-
-            SenderRecord<String, byte[], String> senderRecord =
-                    SenderRecord.create(record, event.eventId());
-
-            return kafkaSender.send(Mono.just(senderRecord))
-                    .doOnNext(result -> {
-                        if (result.exception() == null) {
-                            log.error("☠️ EventId={} sent to DLT, type={}, reason={}", event.eventId(), failureType, reason);
-                        } else {
-                            log.error("🔥 DLT publish failed for eventId={} error={}", event.eventId(), result.exception().getMessage());
-                        }
-                    })
-                    .then();
-
-        } catch (Exception e) {
-            log.error("🚨 Failed to serialize event for DLT", e);
-            return Mono.empty();
+    private void logResult(SenderResult<String> result) {
+        if (result.exception() == null) {
+            log.warn("EventId={} routed to DLT topic={}", result.correlationMetadata(), dltTopic);
+        } else {
+            log.error("Failed to publish eventId={} to DLT topic={} due to {}", result.correlationMetadata(), dltTopic, result.exception().getMessage());
         }
     }
 }

@@ -1,34 +1,24 @@
 package com.saha.amit.reactiveOrderService.service;
 
-
 import com.saha.amit.reactiveOrderService.events.OrderEvent;
-import com.saha.amit.reactiveOrderService.messanger.OrderEventPublisher;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
-import java.util.UUID;
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class OrderService {
 
-    private final OrderEventPublisher orderEventPublisher;
-
-    public OrderService(OrderEventPublisher orderEventPublisher) {
-        this.orderEventPublisher = orderEventPublisher;
-    }
+    private final OutboxService outboxService;
 
     public Mono<OrderEvent> placeOrder(String customerId, Double amount) {
-        // Create order ID
-        String orderId = UUID.randomUUID().toString();
+        if (amount == null || amount <= 0) {
+            return Mono.error(new IllegalArgumentException("Amount must be greater than zero"));
+        }
 
-        // Create order event
-        OrderEvent event = OrderEvent.create(orderId, customerId, amount, "PLACED");
-
-        // Publish to Kafka and return the event
-        return orderEventPublisher.publish(event)
-                .doOnNext(unused -> log.info("Order event published: {}", event))
-                .doOnError(ex -> log.error("Error publishing event: {}", ex.getMessage()))
-                .thenReturn(event);
+        return outboxService.persistOrderAndOutbox(customerId, amount)
+                .doOnSuccess(event -> log.info("Order {} queued for publishing via outbox", event.orderId()));
     }
 }
