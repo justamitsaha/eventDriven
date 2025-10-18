@@ -44,19 +44,18 @@ public class RetryEventPublisher {
 
         SenderRecord<String, OrderEvent, OrderEvent> record = SenderRecord.create(createRetryRecord(event, nextAttempt), event);
 
-        return Mono.fromRunnable(() ->
-                Mono.delay(backoff)
-                        .thenMany(kafkaSender.send(Mono.just(record)))
-                        .doOnNext(result -> {
-                            if (result.exception() == null) {
-                                meterRegistry.counter("order.retry.published", "attempt", String.valueOf(nextAttempt)).increment();
-                                log.info("Retry attempt {} published for eventId={}", nextAttempt, event.eventId());
-                            } else {
-                                meterRegistry.counter("order.retry.publish.failure").increment();
-                                log.error("Retry publish failed for eventId={} attempt={} due to {}", event.eventId(), nextAttempt, result.exception().getMessage());
-                            }
-                        })
-                        .subscribe());
+        return Mono.delay(backoff)
+                .thenMany(kafkaSender.send(Mono.just(record)))
+                .doOnNext(result -> {
+                    if (result.exception() == null) {
+                        meterRegistry.counter("order.retry.published", "attempt", String.valueOf(nextAttempt)).increment();
+                        log.info("Retry attempt {} published for eventId={}", nextAttempt, event.eventId());
+                    } else {
+                        meterRegistry.counter("order.retry.publish.failure").increment();
+                        log.error("Retry publish failed for eventId={} attempt={} due to {}", event.eventId(), nextAttempt, result.exception().getMessage());
+                    }
+                })
+                .then();
     }
 
     private ProducerRecord<String, OrderEvent> createRetryRecord(OrderEvent event, int attempt) {

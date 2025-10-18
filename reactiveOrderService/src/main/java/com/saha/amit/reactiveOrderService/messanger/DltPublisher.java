@@ -33,7 +33,7 @@ public class DltPublisher {
                                 Integer partition,
                                 Long offset) {
         return Mono.fromCallable(() -> objectMapper.writeValueAsBytes(event))
-                .flatMap(payload -> kafkaSender
+                .flatMapMany(payload -> kafkaSender
                         .send(Mono.just(buildSenderRecord(event, payload, failureType, reason, sourceTopic, partition, offset)))
                         .doOnNext(this::logResult))
                 .then();

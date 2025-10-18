@@ -13,6 +13,7 @@ import reactor.core.Disposable;
 import reactor.core.publisher.Mono;
 import reactor.kafka.receiver.KafkaReceiver;
 import reactor.kafka.receiver.ReceiverRecord;
+import reactor.util.retry.Retry;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -20,13 +21,13 @@ import java.util.Optional;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor
+//@RequiredArgsConstructor
 public class OrderEventConsumer {
 
     private static final String RETRY_ATTEMPT_HEADER = "retry-attempt";
 
-    private final @Qualifier("jsonKafkaReceiver") KafkaReceiver<String, OrderEvent> kafkaReceiver;
-    private final @Qualifier("retryKafkaReceiver") KafkaReceiver<String, OrderEvent> retryKafkaReceiver;
+    private final KafkaReceiver<String, OrderEvent> kafkaReceiver;
+    private final KafkaReceiver<String, OrderEvent> retryKafkaReceiver;
     private final DltPublisher dltPublisher;
     private final RetryEventPublisher retryEventPublisher;
     private final MeterRegistry meterRegistry;
@@ -36,6 +37,18 @@ public class OrderEventConsumer {
 
     private Disposable mainSubscription;
     private Disposable retrySubscription;
+
+    public OrderEventConsumer(@Qualifier("jsonKafkaReceiver")KafkaReceiver<String, OrderEvent> kafkaReceiver,
+                              @Qualifier("retryKafkaReceiver")KafkaReceiver<String, OrderEvent> retryKafkaReceiver,
+                              DltPublisher dltPublisher,
+                              RetryEventPublisher retryEventPublisher,
+                              MeterRegistry meterRegistry) {
+        this.kafkaReceiver = kafkaReceiver;
+        this.retryKafkaReceiver = retryKafkaReceiver;
+        this.dltPublisher = dltPublisher;
+        this.retryEventPublisher = retryEventPublisher;
+        this.meterRegistry = meterRegistry;
+    }
 
     @PostConstruct
     public void start() {
@@ -58,7 +71,7 @@ public class OrderEventConsumer {
         return receiver.receive()
                 .flatMap(record -> processRecord(record, isRetryTopic).thenReturn(record))
                 .doOnError(ex -> log.error("Error consuming Kafka events", ex))
-                .retryWhen(companion -> companion.delayElements(Duration.ofSeconds(5)))
+                .retryWhen(Retry.fixedDelay(Long.MAX_VALUE, Duration.ofSeconds(5)))
                 .subscribe();
     }
 

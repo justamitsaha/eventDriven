@@ -15,6 +15,7 @@ public class OrderService {
 
     public Mono<OrderEvent> placeOrder(String customerId, Double amount) {
         if (amount == null || amount <= 0) {
+            log.error("Invalid amount provided: {}", amount);
             return Mono.error(new IllegalArgumentException("Amount must be greater than zero"));
         }
 
